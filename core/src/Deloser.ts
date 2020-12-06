@@ -67,8 +67,8 @@ export abstract class DeloserHistoryByRootBase<I, D extends DeloserItemBase<I>> 
         return this._history.some(d => d.belongsTo(deloser));
     }
 
-    abstract async focusAvailable(from: I | null): Promise<boolean>;
-    abstract async resetFocus(from: I | null): Promise<boolean>;
+    abstract focusAvailable(from: I | null): Promise<boolean>;
+    abstract resetFocus(from: I | null): Promise<boolean>;
 }
 
 class DeloserHistoryByRoot extends DeloserHistoryByRootBase<Types.Deloser, DeloserItem> {

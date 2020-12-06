@@ -127,7 +127,7 @@ abstract class CrossOriginTransaction<I, O> {
     protected ownerId: string;
     protected sendUp: Types.CrossOriginTransactionSend | undefined;
     private _promise: Promise<O>;
-    protected _resolve: ((endData?: O) => void) | undefined;
+    protected _resolve: ((endData?: O | PromiseLike<O>) => void) | undefined;
     private _reject: ((reason: string) => void) | undefined;
     private _knownTargets: KnownTargets;
     private _sentTo: Types.CrossOriginSentTo;

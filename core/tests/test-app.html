@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ability Helpers Test</title>
+<script>
+window.exports = {};
+</script>
+<script src="../dist/ability-helpers.cjs.development.js"></script>
+<script>
+function onLoad() {
+    window.AbilityHelpersInstance = exports.createAbilityHelpers(window);
+    window.AbilityHelpersInstance.outline.setup();
+}
+</script>
+</head>
+<body onload="onLoad();"></body>
+</html>
