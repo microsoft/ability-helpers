@@ -189,8 +189,8 @@ export class Root implements Types.Root {
 
                 if (element) {
                     toFocus = props.isFirst
-                        ? this._tabster.focusable.findFirst(element)
-                        : this._tabster.focusable.findLast(element);
+                        ? this._tabster.focusable.findFirst({ container: element })
+                        : this._tabster.focusable.findLast({ container: element });
                 } else {
                     toFocus = null;
                 }
@@ -393,41 +393,66 @@ export class RootAPI implements Types.RootAPI {
      */
     static getTabsterContext(
         tabster: Types.TabsterCore,
-        element: Node, options: Types.GetTabsterContextOptions = {},
+        element: Node,
+        options: Types.GetTabsterContextOptions = {}
     ): Types.TabsterContext | undefined {
         if (!element.ownerDocument) {
             return undefined;
         }
 
+        const getAllGrouppersAndMovers = options.getAllGrouppersAndMovers;
+        const checkRtl = options.checkRtl;
         let root: Types.Root | undefined;
         let modalizer: Types.Modalizer | undefined;
         let groupper: Types.Groupper | undefined;
-        let mover: HTMLElement | undefined;
-        let moverOptions: Types.MoverOptions | undefined;
+        let mover: Types.Mover | undefined;
         let isGroupperFirst: boolean | undefined;
-        let isRtl = false;
-
+        let isRtl: boolean | undefined;
+        let allGrouppersAndMovers: Types.TabsterContext['allGrouppersAndMovers'] = getAllGrouppersAndMovers ? [] : undefined;
         let curElement: (Node | null) = element;
-        while (curElement && (!root || options.checkRtl )) {
+
+        while (curElement && (!root || checkRtl)) {
             const tabsterOnElement = getTabsterOnElement(tabster, curElement);
+
+            if (checkRtl && (isRtl === undefined)) {
+                const dir = (curElement as HTMLElement).dir;
+
+                if (dir) {
+                    isRtl = dir.toLowerCase() === 'rtl';
+                }
+            }
 
             if (!tabsterOnElement) {
                 curElement = curElement.parentElement;
                 continue;
             }
 
-            if (!groupper && tabsterOnElement.groupper) {
-                groupper = tabsterOnElement.groupper;
+            const curGroupper = tabsterOnElement.groupper;
+            const curMover = tabsterOnElement.mover;
+
+            if (getAllGrouppersAndMovers && allGrouppersAndMovers) {
+                if (curGroupper) {
+                    allGrouppersAndMovers.push({
+                        isGroupper: true,
+                        groupper: curGroupper
+                    });
+                }
+
+                if (curMover) {
+                    allGrouppersAndMovers.push({
+                        isGroupper: false,
+                        mover: curMover
+                    });
+                }
             }
 
-            const moverOnElement = tabsterOnElement.focusable?.mover;
-            if ((moverOnElement !== undefined) && (moverOptions === undefined)) {
-                moverOptions = moverOnElement;
+            if (!groupper && curGroupper) {
+                groupper = curGroupper;
+            }
 
-                if ((moverOptions.navigationType === Types.MoverKeys.Arrows) || (moverOptions.navigationType === Types.MoverKeys.Both)) {
-                    mover = curElement as HTMLElement;
-                    isGroupperFirst = !!groupper;
-                }
+            if (!mover && curMover) {
+                mover = curMover;
+                isGroupperFirst = !!groupper;
             }
 
             if (!modalizer && tabsterOnElement.modalizer) {
@@ -436,10 +461,6 @@ export class RootAPI implements Types.RootAPI {
 
             if (tabsterOnElement.root) {
                 root = tabsterOnElement.root;
-            }
-
-            if ((curElement as HTMLElement).getAttribute('dir') === 'rtl') {
-                isRtl = true;
             }
 
             curElement = curElement.parentElement;
@@ -471,9 +492,9 @@ export class RootAPI implements Types.RootAPI {
             modalizer,
             groupper,
             mover,
-            moverOptions,
             isGroupperFirst,
-            isRtl: options.checkRtl ? isRtl : undefined,
+            allGrouppersAndMovers,
+            isRtl: checkRtl ? !!isRtl : undefined
         } : undefined;
 
     }
